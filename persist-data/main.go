@@ -39,12 +39,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	id, err := SaveUser(users[0])
-	if err != nil {
-		log.Fatal(err)
+	db := dbConn()
+	for i := 0; i < len(users); i++ {
+		_, err := SaveUser(db, users[0])
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
-
-	log.Println("Inserted id ", id)
 }
 
 func dbConn() (db *sql.DB) {
@@ -69,9 +70,7 @@ func dbConn() (db *sql.DB) {
 	return db
 }
 
-func SaveUser(user User) (int64, error) {
-	db := dbConn()
-
+func SaveUser(db *sql.DB, user User) (int64, error) {
 	result, err := db.Exec("INSERT INTO users (name, email, company) VALUES (?, ?, ?)", user.Name, user.Email, user.Company)
 	if err != nil {
 		return 0, err
