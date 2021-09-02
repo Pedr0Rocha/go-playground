@@ -33,18 +33,21 @@ const (
 	DATABASE_DATABASE = "users_test_data"
 )
 
-var db *sql.DB
-
 func main() {
-	_, err := GetUsersFromJson()
+	users, err := GetUsersFromJson()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ConnectToDatabase()
+	id, err := SaveUser(users[0])
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("Inserted id ", id)
 }
 
-func ConnectToDatabase() {
+func dbConn() (db *sql.DB) {
 	config := mysql.Config{
 		User:                 DATABASE_USER,
 		Passwd:               DATABASE_PASSWORD,
@@ -63,11 +66,23 @@ func ConnectToDatabase() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Connected!")
+	return db
 }
 
-func SaveUsers() {
+func SaveUser(user User) (int64, error) {
+	db := dbConn()
 
+	result, err := db.Exec("INSERT INTO users (name, email, company) VALUES (?, ?, ?)", user.Name, user.Email, user.Company)
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
 }
 
 func GetUsersFromJson() ([]User, error) {
