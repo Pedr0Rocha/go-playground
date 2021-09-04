@@ -1,4 +1,4 @@
-module github.com/pedr0rocha/persist-data-mongodb
+module github.com/pedr0rocha/go-playground/persist-data-mongodb
 
 go 1.17
 
