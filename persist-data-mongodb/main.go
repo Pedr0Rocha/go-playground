@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -49,12 +50,26 @@ func main() {
 
 	collection := client.Database("tests").Collection("users")
 
-	for i := 0; i < len(users); i++ {
-		_, err := collection.InsertOne(context.TODO(), users[i])
-		if err != nil {
-			log.Fatal(err)
+	/*
+		for i := 0; i < len(users); i++ {
+			_, err := collection.InsertOne(context.TODO(), users[i])
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
+	*/
+
+	bulkInsert := make([]interface{}, len(users))
+	for i, user := range users {
+		bulkInsert[i] = user
 	}
+
+	insertManyResult, err := collection.InsertMany(context.TODO(), bulkInsert)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Inserted ", len(insertManyResult.InsertedIDs))
 }
 
 func GetUsersFromJson() ([]User, error) {
