@@ -3,14 +3,11 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
-	"strconv"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -34,7 +31,7 @@ const (
 )
 
 func main() {
-	_, err := GetUsersFromJson()
+	users, err := GetUsersFromJson()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,17 +47,14 @@ func main() {
 	}
 	defer client.Disconnect(ctx)
 
-	/*
-	   List databases
-	*/
-	databases, err := client.ListDatabaseNames(ctx, bson.M{})
-	if err != nil {
-		log.Fatal(err)
+	collection := client.Database("tests").Collection("users")
+
+	for i := 0; i < len(users); i++ {
+		_, err := collection.InsertOne(context.TODO(), users[i])
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
-	fmt.Println(databases)
-
-	fmt.Println("Connected")
-
 }
 
 func GetUsersFromJson() ([]User, error) {
@@ -80,14 +74,4 @@ func GetUsersFromJson() ([]User, error) {
 	json.Unmarshal(byteValue, &users)
 
 	return users, nil
-}
-
-func PrettyPrintUsers(users []User) {
-	for i := 0; i < len(users); i++ {
-		fmt.Println("#" + strconv.Itoa(i))
-		fmt.Println("name: " + users[i].Name)
-		fmt.Println("email: " + users[i].Email)
-		fmt.Println("company: " + users[i].Company)
-		fmt.Println("created: " + users[i].Created + "\n")
-	}
 }
